@@ -1,0 +1,22 @@
+{
+	"name": "Spacebrew URL Launcher & Tabs Manager",
+	"version": "3.0.1",
+	"manifest_version": 2,
+    "description": "Redirects the Chrome browser tab to a specific URL based on input from spacebrew.",
+	"background" : {
+		"page": "background.html"
+	},
+	"permissions": [
+		"tabs", "http://*/*", "file://*/*", "https://*/*"
+	],
+	"content_scripts": [
+	    {
+	      "js": [
+	        "js/libs/jquery/jq.js",
+	        "js/libs/jquery/jq-idletimer-0.9.1.js",
+	        "js/content_script.js"
+	      ],
+	      "matches": ["<all_urls>"]
+	    }
+	]
+}
