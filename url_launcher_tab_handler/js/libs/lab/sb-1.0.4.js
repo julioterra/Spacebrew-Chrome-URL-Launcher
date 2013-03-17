@@ -185,11 +185,12 @@ Spacebrew.Client = function( server, name, description, port, debug, admin ){
 
 	this.admin_config = [
 			{
-				admin: admin ? (admin == true) : false
+				admin: true
 			}
 		];		
 
 	this.admin = {
+		active: admin, 
 		clients: []
 	}
 
@@ -301,7 +302,7 @@ Spacebrew.Client.prototype.addSubscribe = function( name, type ){
 Spacebrew.Client.prototype.updatePubSub = function(){
 	if (this._isConnected) {
 		this.socket.send(JSON.stringify({"config": this.client_config}));
-		this.socket.send(JSON.stringify({"admin": this.admin_config}));
+		if (this.admin.active) this.socket.send(JSON.stringify({"admin": this.admin_config}));
 	}
 }
 
@@ -349,6 +350,7 @@ Spacebrew.Client.prototype._onOpen = function() {
  */
 Spacebrew.Client.prototype._onMessage = function( e ){
 	var data = JSON.parse(e.data);
+
 
 	// handle client messages 
 	if (data["message"]) {

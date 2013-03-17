@@ -13,7 +13,7 @@
  * 
  */
 
-var debug = false;
+var debug = debug || undefined;
 
 var content = {};
 	content.qs_attrs = ["debug", "keep_tabs", "loose_focus", "go_fullscreen", "url_launcher", "timeout"],
@@ -65,9 +65,12 @@ readRequest = function(_request, sender, sendResponse) {
  	if (content.qs_cur.href) {
 		if (!sb.connected && content.qs_cur.url_launcher) sbConnect(content.qs_cur.name, content.qs_cur.server, content.qs_cur.port);
 		content.tab_handler = content.tab_handler || new CX.UrlLauncherAndTabHandler();
-		debug = content.qs_cur.debug;
 
 		if (content.qs_cur.active) {
+			debug = content.qs_cur.debug;
+			if (debug) console.log("debugging turned ON");
+			else console.log("debugging turned OFF");
+
 			content.qs_cur.tab = sender.tab;
 			content.tab_handler.updateOptions(content.qs_cur);
 			prepQueryString(content.qs_cur);			
@@ -121,7 +124,7 @@ sbConnect = function (name, server, port) {
  * @return {none} 
  */
 onOpen = function() {
-	console.log("[sb.onopen] websockets connection opened, device name is: " + name);
+	if (debug) console.log("[sb.onopen] websockets connection opened, device name is: " + name);
 	sb.connected = true;
 }
 
@@ -130,7 +133,7 @@ onOpen = function() {
  * @return {none} 
  */
 onClose = function() {
-    console.log("[sb.onclose] websockets connection closed");
+    if (debug) console.log("[sb.onclose] websockets connection closed");
 	sb.connected = false;
 }
 

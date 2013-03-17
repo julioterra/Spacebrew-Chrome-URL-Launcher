@@ -52,9 +52,9 @@ CX.UrlLauncherAndTabHandler.prototype = {
 		if (debug) console.log("[CX.updateOptions] updated options: ");
 	 	if (debug) console.log(params);
 
-		this.go_fullscreen = (params.go_fullscreen == undefined) ? true : params.go_fullscreen;
+		this.go_fullscreen = (params.go_fullscreen == undefined) ? false : params.go_fullscreen;
 		this.keep_tabs = (params.keep_tabs == undefined) ? true : params.keep_tabs;
-		// this.loose_focus = (params.loose_focus == undefined) ? false : params.loose_focus;
+		this.active = (params.active == undefined) ? false : params.active;
 		this.manageListeners();
 		this.setActiveTab(params.tab);
 
@@ -246,12 +246,20 @@ CX.UrlLauncherAndTabHandler.prototype = {
 	* @param {string} url Holds the URL that is being set as the active URL
 	*/
 	setActiveUrl: function (url) {
-		if (debug) console.log("[CX.setActiveUrl] setting active url to " + this.url);
+		if (debug) console.log("[CX.setActiveUrl] setting tab " + this.tab_id + " to active url to " + this.url);
 		var activeUrl = this.url = url;
 		var self = this;
-		chrome.tabs.query({active:true, currentWindow:true}, function(tabArray) { 
-			self.setActiveTab.bind(this,tabArray[0]);
-			chrome.tabs.update(this.tab_id, {url: activeUrl, active: true});
+		chrome.tabs.query({}, function(tabArray) { 
+			var active_tab = 0;
+			for (var i = 0; i < tabArray.length; i++ ) {
+				// target tab found, stop loop
+				if (tabArray[i].id == self.tab_id) break;
+				// currently active tab registered
+				else if (tabArray[i].active == true) active_tab = i;
+				// setting active tab to new destination since target tab not found
+				if (i == (tabArray.length - 1)) self.setActiveTab(tabArray[active_tab]);
+			}
+			chrome.tabs.update(self.tab_id, {url: activeUrl, active: true});
 		});
 	},
 
