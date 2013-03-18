@@ -26,6 +26,7 @@ CX.UrlLauncherAndTabHandler = function () {
 	this.tab_id = -1;
 	this.window_id = -1;
 	this.url = undefined;
+	this.url_launcher = false;
 	this.listener_focus = false;
 	this.listener_close = false;
 	this.listener_update = false;
@@ -55,11 +56,18 @@ CX.UrlLauncherAndTabHandler.prototype = {
 		this.go_fullscreen = (params.go_fullscreen == undefined) ? false : params.go_fullscreen;
 		this.keep_tabs = (params.keep_tabs == undefined) ? true : params.keep_tabs;
 		this.active = (params.active == undefined) ? false : params.active;
-		this.manageListeners();
-		this.setActiveTab(params.tab);
+		// this.url_launcher = (params.url_launcher == undefined) ? false : params.url_launcher;
 
-		if (debug) console.log("[CX.updateOptions] fullscreen: ");
-	 	if (debug) console.log(this.go_fullscreen);
+		if (this.url_launcher) {
+			this.manageListeners();
+			this.setActiveTab(params.tab);			
+		}
+	},
+
+	activateURLLauncher: function (status) {
+		console.log("[CX.activateURLLauncher] set to: ", status);
+		this.url_launcher = status;
+		if (!this.url_launcher) this.removeAllListeners();
 	},
 
 	/***************************
@@ -74,55 +82,59 @@ CX.UrlLauncherAndTabHandler.prototype = {
 	 * @return {none}
 	 */
 	manageListeners: function() {
+		var self = this;
 
 		if (!this.listener_update && this.go_fullscreen) {
 			if (debug) console.log("[CX.manageListeners] setting up update listeners ");
-			chrome.tabs.onUpdated.addListener(this.onTabUpdate.bind(this));
+			chrome.tabs.onUpdated.addListener(self.onTabUpdate);
+			// chrome.tabs.onUpdated.addListener(this.onTabUpdate.bind(this));
 			this.listener_update = true;
 		}
 
 		if (!this.listener_close && !this.keep_tabs) {
 			if (debug) console.log("[CX.manageListeners] setting up tab close listeners ");
-			chrome.tabs.onRemoved.addListener(this.onTabClose.bind(this));
-			chrome.windows.onRemoved.addListener(this.onWindowClose.bind(this));
-			chrome.windows.onFocusChanged.addListener(this.onWindowFocusLost.bind(this));
-			chrome.tabs.onActivated.addListener(this.onTabActiveChange.bind(this));	
+			chrome.tabs.onRemoved.addListener(self.onTabClose);
+			chrome.windows.onRemoved.addListener(self.onWindowClose);
+			chrome.windows.onFocusChanged.addListener(self.onWindowFocusLost);
+			chrome.tabs.onActivated.addListener(self.onTabActiveChange);	
+			// chrome.tabs.onRemoved.addListener(this.onTabClose.bind(this));
+			// chrome.windows.onRemoved.addListener(this.onWindowClose.bind(this));
+			// chrome.windows.onFocusChanged.addListener(this.onWindowFocusLost.bind(this));
+			// chrome.tabs.onActivated.addListener(this.onTabActiveChange.bind(this));	
 			this.listener_close = true;
 		} 
 
 		if (this.listener_update && !this.go_fullscreen) {
 			if (debug) console.log("[CX.manageListeners] removing update listeners ");
-			chrome.tabs.onUpdated.removeListener(this.onTabUpdate.bind(this));
+			chrome.tabs.onUpdated.removeListener(self.onTabUpdate);
+			// chrome.tabs.onUpdated.removeListener(this.onTabUpdate.bind(this));
 			this.listener_focus = false;
 		}
 
 		if (this.listener_close && this.keep_tabs) {
 			if (debug) console.log("[CX.manageListeners] removing tab close listeners ");
-			this.removeOnRemoveListeners();
-			this.removeOnFocusListeners();
+			chrome.windows.onFocusChanged.removeListener(self.onWindowFocusLost);
+			chrome.tabs.onActivated.removeListener(self.onTabActiveChange);	
+			chrome.tabs.onRemoved.removeListener(self.onTabClose);
+			chrome.windows.onRemoved.removeListener(self.onWindowClose);
+			// chrome.windows.onFocusChanged.removeListener(this.onWindowFocusLost.bind(this));
+			// chrome.tabs.onActivated.removeListener(this.onTabActiveChange.bind(this));	
+			// chrome.tabs.onRemoved.removeListener(this.onTabClose.bind(this));
+			// chrome.windows.onRemoved.removeListener(this.onWindowClose.bind(this));
 			this.listener_close = false;
 		} 
 	},
 
-	/**
-	 * removeOnFocusListeners method that removes the "focus" and "activation" related listeners   
-	 * 		for window and tabs.
-	 * @return {none} 
-	 */
-	removeOnFocusListeners: function () {
-		chrome.windows.onFocusChanged.removeListener(this.onWindowFocusLost.bind(this));
-		chrome.tabs.onActivated.removeListener(this.onTabActiveChange.bind(this));	
-	},
 
-	/**
-	 * removeOnFocusListeners method that removes the "onRemove" listeners for tabs and windows. 
-	 * @return {none}
-	 */
-	removeOnRemoveListeners: function () {
-		chrome.tabs.onRemoved.removeListener(this.onTabClose.bind(this));
-		chrome.windows.onRemoved.removeListener(this.onWindowClose.bind(this));
+	removeAllListeners: function() {
+		if (debug) console.log("[CX.removeAllListeners] removing all listeners ");
+		var self = this;
+		if (chrome.tabs.onUpdated.hasListener(self.onTabUpdate)) chrome.tabs.onUpdated.removeListener(self.onTabUpdate);
+		if (chrome.windows.onFocusChanged.hasListener(self.onWindowFocusLost)) chrome.windows.onFocusChanged.removeListener(self.onWindowFocusLost);
+		if (chrome.tabs.onActivated.hasListener(self.onTabActiveChange)) chrome.tabs.onActivated.removeListener(self.onTabActiveChange);	
+		if (chrome.tabs.onRemoved.hasListener(self.onTabClose)) chrome.tabs.onRemoved.removeListener(self.onTabClose);
+		if (chrome.windows.onRemoved.hasListener(self.onWindowClose)) chrome.windows.onRemoved.removeListener(self.onWindowClose);
 	},
-
 
 	/***************************
 	 ** CALLBACK METHODS

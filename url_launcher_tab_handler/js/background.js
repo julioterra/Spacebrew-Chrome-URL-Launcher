@@ -62,15 +62,16 @@ readRequest = function(_request, sender, sendResponse) {
 	var response = {live_status: true};
 	content.qs_cur = _request;
 
- 	if (content.qs_cur.href) {
+ 	if (content.qs_cur.href && content.qs_cur.url_launcher != undefined) {
+		debug = content.qs_cur.debug;
+		if (debug) console.log("debugging turned ON");
+		else console.log("debugging turned OFF");
+
 		if (!sb.connected && content.qs_cur.url_launcher) sbConnect(content.qs_cur.name, content.qs_cur.server, content.qs_cur.port);
 		content.tab_handler = content.tab_handler || new CX.UrlLauncherAndTabHandler();
+		content.tab_handler.activateURLLauncher(content.qs_cur.url_launcher)
 
 		if (content.qs_cur.active) {
-			debug = content.qs_cur.debug;
-			if (debug) console.log("debugging turned ON");
-			else console.log("debugging turned OFF");
-
 			content.qs_cur.tab = sender.tab;
 			content.tab_handler.updateOptions(content.qs_cur);
 			prepQueryString(content.qs_cur);			
