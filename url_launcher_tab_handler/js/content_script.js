@@ -38,6 +38,10 @@ function readQueryStringOptions() {
 	if (getQueryString("url_launcher") == "true") options.url_launcher = true;  
 	else if (getQueryString("url_launcher") == "false") options.url_launcher = false;  
 
+	options.tab_manager = undefined;
+	if (getQueryString("tab_manager") == "true") options.tab_manager = true;  
+	else if (getQueryString("tab_manager") == "false") options.tab_manager = false;  
+
 	options.active = getQueryString("active") == "true" ? true : false; 
 	options.debug = debug = getQueryString("debug")  == "true" ? true : false; 
 	options.go_fullscreen = getQueryString("fullscreen") == "true" ? true : false;

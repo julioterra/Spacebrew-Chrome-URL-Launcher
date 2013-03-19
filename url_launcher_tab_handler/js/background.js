@@ -62,19 +62,37 @@ readRequest = function(_request, sender, sendResponse) {
 	var response = {live_status: true};
 	content.qs_cur = _request;
 
- 	if (content.qs_cur.href && content.qs_cur.url_launcher != undefined) {
-		debug = content.qs_cur.debug;
-		if (debug) console.log("debugging turned ON");
-		else console.log("debugging turned OFF");
+ 	if (content.qs_cur.href) {
+ 		// update the debug status
+		if(content.qs_cur.tab_manager != undefined || content.qs_cur.url_launcher != undefined) {
+			debug = content.qs_cur.debug;
+			if (debug) console.log("debugging turned ON");
+			else console.log("debugging turned OFF");			
+		}
 
-		if (!sb.connected && content.qs_cur.url_launcher) sbConnect(content.qs_cur.name, content.qs_cur.server, content.qs_cur.port);
+		// create tab_handler object
 		content.tab_handler = content.tab_handler || new CX.UrlLauncherAndTabHandler();
-		content.tab_handler.activateURLLauncher(content.qs_cur.url_launcher)
 
-		if (content.qs_cur.active) {
+		// update status of URL Launcher
+		if(content.qs_cur.url_launcher != undefined) {
+			if (!sb.connected && content.qs_cur.url_launcher) sbConnect(content.qs_cur.name, content.qs_cur.server, content.qs_cur.port);
+			if (sb.connected && !content.qs_cur.url_launcher) {
+				sb.connection.close();
+				sb.connected = false;
+			}
+			content.tab_handler.activateURLLauncher(content.qs_cur.url_launcher);
+		}
+
+		// update status of Tab Manager
+		if(content.qs_cur.url_launcher != undefined) {
+			content.tab_handler.activateTabManager(content.qs_cur.tab_manager);
+		}
+
+		// update the query string options 
+		if(content.qs_cur.tab_manager != undefined || content.qs_cur.url_launcher != undefined || content.qs_cur.active) {
+			prepQueryString(content.qs_cur);			
 			content.qs_cur.tab = sender.tab;
 			content.tab_handler.updateOptions(content.qs_cur);
-			prepQueryString(content.qs_cur);			
 		}
 
 		if (content.qs_cur.timeout > 0) {

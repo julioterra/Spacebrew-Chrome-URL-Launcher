@@ -27,6 +27,7 @@ CX.UrlLauncherAndTabHandler = function () {
 	this.window_id = -1;
 	this.url = undefined;
 	this.url_launcher = false;
+	this.tab_manager = false;
 	this.listener_focus = false;
 	this.listener_close = false;
 	this.listener_update = false;
@@ -56,18 +57,23 @@ CX.UrlLauncherAndTabHandler.prototype = {
 		this.go_fullscreen = (params.go_fullscreen == undefined) ? false : params.go_fullscreen;
 		this.keep_tabs = (params.keep_tabs == undefined) ? true : params.keep_tabs;
 		this.active = (params.active == undefined) ? false : params.active;
-		// this.url_launcher = (params.url_launcher == undefined) ? false : params.url_launcher;
 
-		if (this.url_launcher) {
-			this.manageListeners();
+		if (this.tab_manager || this.url_launcher) {
 			this.setActiveTab(params.tab);			
+			this.manageListeners();
 		}
 	},
 
 	activateURLLauncher: function (status) {
 		console.log("[CX.activateURLLauncher] set to: ", status);
 		this.url_launcher = status;
-		if (!this.url_launcher) this.removeAllListeners();
+		if (!this.tab_manager && !this.url_launcher) this.removeAllListeners();
+	},
+
+	activateTabManager: function (status) {
+		console.log("[CX.activateTabManager] set to: ", status);
+		this.tab_manager = status;
+		if (!this.tab_manager && !this.url_launcher) this.removeAllListeners();
 	},
 
 	/***************************
@@ -87,7 +93,6 @@ CX.UrlLauncherAndTabHandler.prototype = {
 		if (!this.listener_update && this.go_fullscreen) {
 			if (debug) console.log("[CX.manageListeners] setting up update listeners ");
 			chrome.tabs.onUpdated.addListener(self.onTabUpdate);
-			// chrome.tabs.onUpdated.addListener(this.onTabUpdate.bind(this));
 			this.listener_update = true;
 		}
 
@@ -97,17 +102,12 @@ CX.UrlLauncherAndTabHandler.prototype = {
 			chrome.windows.onRemoved.addListener(self.onWindowClose);
 			chrome.windows.onFocusChanged.addListener(self.onWindowFocusLost);
 			chrome.tabs.onActivated.addListener(self.onTabActiveChange);	
-			// chrome.tabs.onRemoved.addListener(this.onTabClose.bind(this));
-			// chrome.windows.onRemoved.addListener(this.onWindowClose.bind(this));
-			// chrome.windows.onFocusChanged.addListener(this.onWindowFocusLost.bind(this));
-			// chrome.tabs.onActivated.addListener(this.onTabActiveChange.bind(this));	
 			this.listener_close = true;
 		} 
 
 		if (this.listener_update && !this.go_fullscreen) {
 			if (debug) console.log("[CX.manageListeners] removing update listeners ");
 			chrome.tabs.onUpdated.removeListener(self.onTabUpdate);
-			// chrome.tabs.onUpdated.removeListener(this.onTabUpdate.bind(this));
 			this.listener_focus = false;
 		}
 
@@ -117,10 +117,6 @@ CX.UrlLauncherAndTabHandler.prototype = {
 			chrome.tabs.onActivated.removeListener(self.onTabActiveChange);	
 			chrome.tabs.onRemoved.removeListener(self.onTabClose);
 			chrome.windows.onRemoved.removeListener(self.onWindowClose);
-			// chrome.windows.onFocusChanged.removeListener(this.onWindowFocusLost.bind(this));
-			// chrome.tabs.onActivated.removeListener(this.onTabActiveChange.bind(this));	
-			// chrome.tabs.onRemoved.removeListener(this.onTabClose.bind(this));
-			// chrome.windows.onRemoved.removeListener(this.onWindowClose.bind(this));
 			this.listener_close = false;
 		} 
 	},

@@ -17,6 +17,7 @@
  * Latest Updates:
  * - enable client apps to register for admin privileges.
  * - added methods to handle admin messages and to update routes.
+ * - added close method to close Spacebrew connection.
  * 
  * @author 		Brett Renfer and Julio Terra from LAB @ Rockwell Group
  * @filename	sb-1.0.4.js
@@ -214,6 +215,22 @@ Spacebrew.Client.prototype.connect = function(){
 	} catch(e){
 		this._isConnected = false;
 		console.log("[connect:Spacebrew] connection attempt failed")
+	}
+}
+
+/**
+ * Close Spacebrew connection
+ * @memberOf Spacebrew.Client
+ */
+Spacebrew.Client.prototype.close = function(){
+	try {
+		if (this._isConnected == true) {
+			this.socket.close();
+			this._isConnected = false;
+			console.log("[close:Spacebrew] closing websocket connection")
+		}		
+	} catch (e) {		
+		this._isConnected = false;
 	}
 }
 

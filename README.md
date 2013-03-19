@@ -6,12 +6,14 @@ This chrome extension is the spacebrew Url Launcher app. This app accepts a stri
 **App:** 	spacrebrew_url_launcher  
 **Component:** 	url_launcher chrome extension  
 **Team:** 	Julio Terra  
-**Date:** 	March 15, 2013    
+**Date:** 	March 18, 2013    
   
 **System Requirements:** 
 * Tested on Chrome version 22 
 * Debugged on Mac OSX only (may work on other platforms but has not been tested)  
 
+**Latest Updates:** 
+* Tab manager functionality can be used without URL launcher functionality 
   
 How to Use 
 ----------------------------  
@@ -35,12 +37,13 @@ Query String Options:
   
 The following option flags (true/false) can be set via the query string to change behavior of this chrome extension:
 
-* `active`: when set to "true" it identifies the current tab as the active tab, and proceeds to read all query string options. the url launcher ads the query string "active=true" to all urls that it launches. 
-* `url_launcher`: if url_launcher is set to "true" then chrome extension will function as a url launcher and will connect to interactive spaces. Defaults to "false".
+* `url_launcher`: if url_launcher is set to "true" then chrome extension will function as a url launcher and will connect to spacebrew. Defaults to "false". When set to "false" the spacebrew connection will be closed. 
+* `tab_manager`: if tab_manager is set to "true" then chrome extension functions as a tab_manager, which enables you to keep browser in focus and in fullscreen. Defaults to "false". Automatically turned on when url_launcher is activated.
 * `fullscreen`: when set to "true" the url_launcher automatically goes to fullscreen and attempt to stay in fullscreen at all times. Defaults to "false".
 * `keep_tabs`: when "keep_tabs" is set to "false" the url_launcher deletes all tabs other than the active tab. It also attempts to make sure that the Chrome app is always in focus. Defaults to "true".
 * `timeout`: time in milliseconds used to set time limit for an idle timer. When a web page is idle the url_launcher reloads the active page and sends a true boolean message to Spacebrew via the "im_bored" outlet. Defaults to 0.
 * `debug`: when set to "true" turns on js console messages. Defauls to "false".
+* `active`: when set to "true" it identifies the current tab as the active tab, and proceeds to read all query string options. the url launcher ads the query string "active=true" to all urls that it launches. 
 
 The following options configure the connection to Spacebrew. You don't need to specify these items if you want to connect to the server using the default name, and if you are connecting to the cloud server at 'sandbox.spacebrew.cc':
 * `name`: holds the name for this application that will show up on the spacebrew admin interface. Defaults to "sbUrlLauncher".
