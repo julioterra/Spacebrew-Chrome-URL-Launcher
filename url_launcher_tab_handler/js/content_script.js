@@ -43,7 +43,7 @@ function readQueryStringOptions() {
 	else if (getQueryString("tab_manager") == "false") options.tab_manager = false;  
 
 	options.active = getQueryString("active") == "true" ? true : false; 
-	options.debug = debug = getQueryString("debug")  == "true" ? true : false; 
+	options.debug = getQueryString("debug")  == "true" ? true : false; 
 	options.go_fullscreen = getQueryString("fullscreen") == "true" ? true : false;
 	options.keep_tabs = getQueryString("keep_tabs") != "false" ? true : false;
 
@@ -51,7 +51,8 @@ function readQueryStringOptions() {
 	options.server = getQueryString("server") || false;
 	options.port = getQueryString("port") || 9000;
 
-	options.timeout = getQueryString("timeout") || 0;
+	options.timeout = undefined;
+	if (getQueryString("timeout")) options.timeout = getQueryString("timeout");
 
 	if (options.debug) console.log("[urlLauncher:readQueryStringOptions] sending options: ", options);
 	if (options.debug) addToStatus("sending request to connect to extension");
@@ -103,12 +104,12 @@ function handleResponse(response) {
  */
 function startIdleTimer(timeout){
 	if (isNaN(timeout) || timeout <= 0) {
-		if (debug) console.log("[urlLauncher:startIdleTimer] argument is not a number " + timeout);		
+		if (options.debug) console.log("[urlLauncher:startIdleTimer] argument is not a number " + timeout);		
 		return;
 	}
 
 	idle_timeout = timeout
-	if (debug) console.log("[urlLauncher:startIdleTimer] loading idle timer");
+	if (options.debug) console.log("[urlLauncher:startIdleTimer] loading idle timer");
 	$.idleTimer(parseInt(timeout));
 	$(document).bind("idle.idleTimer", pageIdle);
 };
@@ -119,7 +120,7 @@ function startIdleTimer(timeout){
  * @return {none} 
  */
 function pageIdle(){
-	if (debug) console.log("[urlLauncher:pageIdle] page has been idle for " + idle_timeout);
+	if (options.debug) console.log("[urlLauncher:pageIdle] page has been idle for " + idle_timeout);
 	chrome.extension.sendMessage({idle: true, timeout: idle_timeout}, function(response) {});		
 };
 

@@ -241,7 +241,7 @@ CX.UrlLauncherAndTabHandler.prototype = {
 	},
 
 	/**
-	 * [getActiveTab returns the number of the currently active tab]
+	 * Returns the number of the currently active tab
 	 * @return {integer} [the id of the tab that is currently active]
 	 */
 	getActiveTab: function() {
@@ -249,13 +249,21 @@ CX.UrlLauncherAndTabHandler.prototype = {
 	},
 
 	/**
-	* setActiveUrl method that updates the browser to go to the url provided, and then sets the
-	* 		active URL to the new location.
+	* method that updates the active URL and then loads it in the browser.
 	* @param {string} url Holds the URL that is being set as the active URL
 	*/
 	setActiveUrl: function (url) {
+		this.url = url;
+		this.loadActiveUrl();
 		if (debug) console.log("[CX.setActiveUrl] setting tab " + this.tab_id + " to active url to " + this.url);
-		var activeUrl = this.url = url;
+	},
+
+	/**
+	* Method that loads the current active URL.
+	*/
+	loadActiveUrl: function () {
+		if (!this.url) return;
+		if (debug) console.log("[CX.loadActiveUrl] setting tab " + this.tab_id + " to active url to " + this.url);
 		var self = this;
 		chrome.tabs.query({}, function(tabArray) { 
 			var active_tab = 0;
@@ -267,10 +275,9 @@ CX.UrlLauncherAndTabHandler.prototype = {
 				// setting active tab to new destination since target tab not found
 				if (i == (tabArray.length - 1)) self.setActiveTab(tabArray[active_tab]);
 			}
-			chrome.tabs.update(self.tab_id, {url: activeUrl, active: true});
+			chrome.tabs.update(self.tab_id, {url: self.url, active: true});
 		});
 	},
-
 	/**
 	 * returnToFocus this method returns a window to focus and ensures that the screen is set to fullscreen
 	 * @param  {object} window Object that holds information about a window, most impotantly the window's id

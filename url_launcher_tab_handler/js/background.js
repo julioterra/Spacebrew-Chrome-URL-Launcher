@@ -16,7 +16,7 @@
 var debug = debug || undefined;
 
 var content = {};
-	content.qs_attrs = ["debug", "keep_tabs", "loose_focus", "go_fullscreen", "url_launcher", "timeout"],
+	content.qs_attrs = ["debug", "keep_tabs", "loose_focus", "go_fullscreen", "url_launcher", "tab_manager", "timeout"],
 	content.qs_active = "";
 	content.qs_cur = {};
 	content.url_active = "";
@@ -95,8 +95,8 @@ readRequest = function(_request, sender, sendResponse) {
 			content.tab_handler.updateOptions(content.qs_cur);
 		}
 
-		if (content.qs_cur.timeout > 0) {
-		 	response.idle = content.idle_timeout = content.qs_cur.timeout;
+		if (content.qs_cur.timeout > 0 || content.idle_timeout > 0) {
+		 	response.idle = content.idle_timeout = content.qs_cur.timeout || content.idle_timeout;
 		 	if (debug) console.log("[readRequest] adding idle timer set-up request to response ", response);
 		}
 	} 
@@ -104,7 +104,7 @@ readRequest = function(_request, sender, sendResponse) {
 	if (content.qs_cur.idle) {
 	 	if (debug) console.log("[readRequest] sending idle message via sb ", content.qs_cur);
 		sb.connection.send("im_bored", "boolean", true);
-		if (content.url_active) content.tab_handler.setActiveUrl(content.url_active);
+		content.tab_handler.loadActiveUrl();
 	}
 
 	sendResponse(response);
