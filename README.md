@@ -18,19 +18,27 @@ This chrome extension is the spacebrew Url Launcher app. This app accepts a stri
 How to Use 
 ----------------------------  
 
-Setting Up the URL Launcher:
+Installing the URL Launcher as Packaged Extension:
 ============================  
+1. Launch Chrome  
+2. Navigate to chrome://extensions  
+3. Drag the `url_launcher_tab_handler.crx` on top of Chrome
+4. Click "Accept"  
+5. Make sure that you click the "Enable" checkbox
 
-1. Install the Chrome Extension on the Chrome browser that will be running this app by following these steps:
-	1. launch the instance of Chrome where this app will run
-	2. navigate to chrome://extensions
-	3. check "Developer" (top right)
-	4. click on the load unpackaged extension button and navigate the root directory of the url launcher
-	5. click "Accept"
-  
-2. Navigate to any URL in Chrome and include all of the appropriate query string options in your URL. Please refer to the section query string option descriptions below.
-  
-3. Go to the admin page for the Spacebrew server that your app is linked to and confirm that the app is showing up. Then link your app to an app that send urls.
+Installing the URL Launcher as Unpackaged Extension:
+============================  
+1. Launch Chrome  
+2. Navigate to chrome://extensions  
+3. Check "Developer" (top right)  
+4. click on the load unpackaged extension button and navigate the root directory of the url launcher  
+5. click "Accept"  
+6. Make sure that you click the "Enable" checkbox
+
+Run the URL Launcher:
+============================  
+1. Navigate to any URL in Chrome and include all of the appropriate query string options in your URL. Please refer to the section query string option descriptions below.     
+2. Go to the admin page for the Spacebrew server that your app is linked to and confirm that the app is showing up. Then link your app to an app that send urls.  
   
 Query String Options:
 ---------------------  
@@ -55,9 +63,9 @@ Query String Samples:
   
 Here is are a few query string samples, along with what they mean:
   
-1. Query string that starts up the URL launcher by settings url_launcher=true, sets the current tab to active by setting active=true. This only works if you are using a spacebrew server that is running on your localhost, as this is the default behavior when a server is not specified in the query string. 
+1. Query string that starts up the URL launcher by settings url_launcher=true. This only works if you are using a spacebrew server that is running on your localhost, as this is the default behavior when a server is not specified in the query string. 
 ```
-[ANY URL]?url_launcher=true&active=true&
+[ANY URL]?url_launcher=true&fullscreen=true&
 ```
 	
 2. Query string that starts up the URL launcher by settings url_launcher=true, sets the current tab to active by setting active=true, sets the hostname of the Spacebrew servers by setting server=serverName, tells the app NOT to go to fullscreen with go_fullscreen=false, and sets keep_tabs=true so that the app will keep inactive tabs open and let users navigate away from the active tab.
