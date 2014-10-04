@@ -13,37 +13,50 @@
  * 
  */
 
-var debug = debug || undefined;
+var debug = debug || true;
 
 var content = {};
-	// content.name = undefined;
-	// content.server = undefined;
-	// content.port = undefined;
-	content.qs_attrs = ["debug", "keep_tabs", "loose_focus", "go_fullscreen", "url_launcher", "tab_manager", "timeout"],
-	content.qs_active = "";
-	content.qs_cur = {
-
-	};
+	content.keys = ["sever", "port", "keep_tabs", "loose_focus", "fullscreen", 
+					"url_launcher", "tab_manager", "timeout",  
+					"name", "description"];
+	content.new = {};
+	content.active = {};
+	content.str = "";
 	content.url_active = "";
 	content.idle_timeout = 0;
 	content.tab_handler;
+
+var state = {};
+	state.active = {
+		"start": false
+		, "update": false
+		, "stop": false	
+		, "debug" : debug || false
+	};
 
 var	sb = {};
 	sb.connected = false;
 	// sb.default_name = "sbUrlLauncher";
     sb.connection = {};     // spacebrew connection
 	sb.config = {
-		active: {
-			name: undefined
-			, server: undefined
-			, port: undefined
-			, description: undefined
-		}
+		"active": {
+			"name": "chrome remote control"
+			, "server": "sandbox.spacebrew.cc"
+			, "port": 9000		
+			, "description": "app that controls URL of tab via spacebrew"	
+			, "keep_tabs": true
+			, "loose_focus": true
+			, "fullscreen": undefined
+			, "url_launcher": undefined
+			, "tab_manager": true
+			, "timeout": 0
+			, "tab": {}
+	}
 		, default: {
-			name: "chrome remote control"
-			, server: "sandbox.spacebrew.cc"
-			, port: 9000		
-			, description: "app that controls URL of tab via spacebrew"	
+			"name": "chrome remote control"
+			, "server": "sandbox.spacebrew.cc"
+			, "port": 9000		
+			, "description": "app that controls URL of tab via spacebrew"	
 		}
 	};
 
@@ -58,7 +71,7 @@ $(document).ready(function() {
  * @return {none} 
  */
 setup = function() {
- 	if (debug) console.log("[setup] added content script request listener listener ");
+ 	if (state.active.debug) console.log("[setup] added content script request listener listener ");
 	chrome.extension.onMessage.addListener(readRequest);
 }
 
@@ -76,68 +89,87 @@ setup = function() {
  * @return {none}
  */
 readRequest = function(_request, sender, sendResponse) {
- 	if (debug) console.log("[readRequest] new request from content script in tab " + sender.tab.id + " request: ");
- 	if (debug) console.log(_request);
+ 	if (state.active.debug) console.log("[readRequest] new request from content script in tab " + sender.tab.id + " request: ");
+ 	if (state.active.debug) console.log(_request);
 	var response = {live_status: true};
-	content.qs_cur = _request;
+	content.new = _request;
 
- 	if (content.qs_cur.href) {
+ 	if (content.new.href) {
+ 		state.active = content.new.state; 
+ 		console.log("state activated to ", state.active);
  		// update the debug status
-		if(content.qs_cur.tab_manager != undefined || content.qs_cur.url_launcher != undefined) {
-			debug = content.qs_cur.debug;
-			if (debug) console.log("debugging turned ON");
-			else console.log("debugging turned OFF");			
-		}
+		// if(content.new.tab_manager != undefined || content.new.url_launcher != undefined) {
+
+		if (content.new.debug != undefined) state.active.debug = content.new.debug;
+		debug = state.active.debug;
+
+		if (state.active.debug) console.log("debugging turned ON");
+		else console.log("debugging turned OFF");
+		console.log(content);
+
+		// }
 
 		// create tab_handler object
 		content.tab_handler = content.tab_handler || new CX.UrlLauncherAndTabHandler();
 
-		// update status of URL Launcher
-		if(content.qs_cur.url_launcher != undefined) {
-			if (!sb.connected && content.qs_cur.url_launcher) {
-				sb.config.active.name = content.qs_cur.name;
-				sb.config.active.server = content.qs_cur.server;
-				sb.config.active.port = content.qs_cur.port;
+		if (state.active.start || state.active.update) {
+			// update status of URL Launcher
+
+			if (!sb.connected) {
 				sbConnect();
 			}
-			if (sb.connected && !content.qs_cur.url_launcher) {
-				sb.connection.close();
-				sb.connected = false;
+
+			for (i in content.keys) {
+				console.log("[readRequest] pre-update sb.config", sb.config)
+				if (content.new[name] != undefined) {					
+					sb.config[content.keys[i]] == content.new[name]; 
+				}
+				console.log("[readRequest] update sb.config", sb.config)
 			}
-			content.tab_handler.activateURLLauncher(content.qs_cur.url_launcher);
+
+			content.tab_handler.activateTabManager(sb.config.tab_manager);
+
+			if ((sb.config.timeout && sb.config.timeout > 0) || (content.new.timeout && content.new.timeout >= 0) ){
+					if (content.new.timeout != sb.config.timeout) sb.config.timeout = content.new.timeout;
+				 	response.idle = sb.config.timeout;
+				 	if (state.active.debug) console.log("[readRequest] adding idle timer set-up request to response ", response);
+			}
+
+			if ((sb.config.active.name != content.new.name) 
+				|| (sb.config.active.server != content.new.server)
+				|| (sb.config.active.port != content.new.port)
+				|| (sb.config.active.description != content.new.description)) {
+			 	if (state.active.debug) console.log("[readRequest] names will be updated to  ", content.new.name);
+				sb.connection.close();			
+				sbConnect();
+			}
+
+			console.log("sender, ", sender);
+
+			sb.config.tab = sender.tab;
+			console.log("sb.config.tab, ", sender);
+			content.tab_handler.updateOptions(sb.config);
+			content.tab_handler.activateURLLauncher(true);
+		}
+		else if (state.active.stop) {
+			sb.connection.close();
+			sb.connected = false;
+			content.tab_handler.activateURLLauncher(false);
 		}
 
-		// update status of Tab Manager
-		if(content.qs_cur.url_launcher != undefined) {
-			content.tab_handler.activateTabManager(content.qs_cur.tab_manager);
-		}
-
-		// update the query string options 
-		if(content.qs_cur.tab_manager != undefined || content.qs_cur.url_launcher != undefined || content.qs_cur.active) {
-			prepQueryString(content.qs_cur);			
-			content.qs_cur.tab = sender.tab;
-			content.tab_handler.updateOptions(content.qs_cur);
-		}
-
-		if (content.qs_cur.timeout > 0 || content.idle_timeout > 0) {
-		 	response.idle = content.idle_timeout = content.qs_cur.timeout || content.idle_timeout;
-		 	if (debug) console.log("[readRequest] adding idle timer set-up request to response ", response);
-		}
-
-		if (content.qs_cur.name != sb.config.active.name) {
-		 	if (debug) console.log("[readRequest] names will be updated to  ", content.qs_cur.name);
-			sb.connection.close();			
-			sbConnect();
-		}
 	} 
 
-	if (content.qs_cur.idle) {
-	 	if (debug) console.log("[readRequest] sending idle message via sb ", content.qs_cur);
+	if (content.new.idle) {
+	 	if (state.active.debug) console.log("[readRequest] sending idle message via sb ", content.new);
 		sb.connection.send("im_bored", "boolean", true);
 		content.tab_handler.loadActiveUrl();
 	}
 
 	sendResponse(response);
+}
+
+updateValue = function(name) {
+	if (content.new[name] != undefined) sb.config.active[name] = content.new[name];
 }
 
 /**
@@ -151,16 +183,15 @@ readRequest = function(_request, sender, sendResponse) {
 sbConnect = function () {
 
 	// check if config needs to be updated with date from query string
-	if (content.qs_cur.name) sb.config.active.name = content.qs_cur.name;
-	if (content.qs_cur.server) sb.config.active.server = content.qs_cur.server;
-	if (content.qs_cur.port) sb.config.active.port = content.qs_cur.port;
+	if (content.new.name) sb.config.active.name = content.new.name;
+	if (content.new.server) sb.config.active.server = content.new.server;
+	if (content.new.port) sb.config.active.port = content.new.port;
 
 	// prepare name, server and description values to configure Spacebrew connection
 	var	name = sb.config.active.name = sb.config.active.name ? sb.config.active.name : sb.config.default.name;
 	var server = sb.config.active.server = sb.config.active.server ? sb.config.active.server : sb.config.default.server;
 	var port = sb.config.active.port = sb.config.active.port ? sb.config.active.port : sb.config.default.port;
 	var description = sb.config.active.description = sb.config.active.description ? sb.config.active.description : sb.config.default.description;
-
 
 	// create Spacebrew client object
 	sb.connection = new Spacebrew.Client(server, name, description, port);
@@ -181,7 +212,7 @@ sbConnect = function () {
  * @return {none} 
  */
 onOpen = function() {
-	if (debug) console.log("[sb.onopen] websockets connection opened, device name is: " + name);
+	if (state.active.debug) console.log("[sb.onopen] websockets connection opened, device name is: " + name);
 	sb.connected = true;
 }
 
@@ -190,7 +221,7 @@ onOpen = function() {
  * @return {none} 
  */
 onClose = function() {
-    if (debug) console.log("[sb.onclose] websockets connection closed");
+    if (state.active.debug) console.log("[sb.onclose] websockets connection closed");
 	sb.connected = false;
 }
 
@@ -203,19 +234,34 @@ onClose = function() {
  * @return {return}        nothing
  */
 onString = function (source, string) {
-	if (debug) console.log("[onString] sb message received from: " + source + " data: " + string);
+	if (state.active.debug) console.log("[onString] sb message received from: " + source + " data: " + string);
 	var expression = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/gi;
 	if ( !string.match(expression)) {
-		if (debug) console.log("[onString] not a URL: ", string.match(expression));
+		if (state.active.debug) console.log("[onString] not a URL: ", string.match(expression));
 		return;
 	}
 
 	if ( !(string.indexOf("http:\/\/") == 0) && !(string.indexOf("https:\/\/") == 0) ) {
 		string = "http:\/\/" + string;
 	}
-	var query_start = "?";
-	if (string.indexOf("?") >= 0) query_start = "&";
-	content.url_active = string + query_start + "active=true" + content.qs_active;
+
+	if (state.active.debug) {
+		var query_start = "?";
+		if (string.indexOf("?") >= 0) query_start = "&";
+		
+		console.log("[prepQueryString]  sb.config", sb.config.active);
+		
+		for (i in content.keys) {
+			if (sb.config.active[content.keys[i]] != undefined) {
+				string += query_start + content.keys[i] + "=" + sb.config.active[content.keys[i]];			
+				query_start = "&";
+			}
+		}
+
+		if (state.active.debug) console.log("[prepQueryString] query string set " + string);
+	}
+
+	content.url_active = string;
 	content.tab_handler.setActiveUrl(content.url_active);			
 }
 
@@ -224,14 +270,16 @@ onString = function (source, string) {
  * 		was launched, or re-activated.
  * @param {array} options Array of the different options that need to be propagate each time the page reloads.
  */
-prepQueryString = function (options) {
-	if (debug) console.log("[prepQueryString] options ", options);
-	content.qs_active = "";
-	for (i in content.qs_attrs) {
-		if (options[content.qs_attrs[i]] != undefined) 
-			content.qs_active += "&" + content.qs_attrs[i] + "=" + options[content.qs_attrs[i]];
+prepQueryString = function () {
+	if (state.active.debug) console.log("[prepQueryString]  sb.config", sb.config.active);
+	content.str = "";
+	for (i in content.keys) {
+		if (sb.config.active[content.keys[i]] != undefined) {
+			content.str += "&" + content.keys[i] + "=" + sb.config.active[content.keys[i]];			
+		}
 	}
-	if (debug) console.log("[prepQueryString] query string set " + content.qs_active);
+	if (state.active.debug) console.log("[prepQueryString] query string set " + content.str);
+	return content.str;
 
 }
 

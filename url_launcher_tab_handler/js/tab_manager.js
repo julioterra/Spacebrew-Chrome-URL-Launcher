@@ -56,12 +56,13 @@ CX.UrlLauncherAndTabHandler.prototype = {
 
 		this.go_fullscreen = (params.go_fullscreen == undefined) ? false : params.go_fullscreen;
 		this.keep_tabs = (params.keep_tabs == undefined) ? true : params.keep_tabs;
-		this.active = (params.active == undefined) ? false : params.active;
+		// this.active = (params.active == undefined) ? false : params.active;
 
-		if (this.tab_manager || this.url_launcher) {
+		if (params.tab.id) {
 			this.setActiveTab(params.tab);			
-			this.manageListeners();
 		}
+
+		this.manageListeners();
 	},
 
 	activateURLLauncher: function (status) {

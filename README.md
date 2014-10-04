@@ -7,13 +7,14 @@ This chrome extension is the spacebrew Url Launcher app. This app accepts a stri
 @author		Julio Terra  
 @created 	March 18, 2013    
 @modified 	October 3, 2014
-@version	3.0.3
+@version	3.0.4
   
 **System Requirements:** 
 * Tested on Chrome version 22 
 * Debugged on Mac OSX only (may work on other platforms but has not been tested)  
 
-**Latest Updates:** 
+**Latest Updates:**
+* 3.0.4 Made it so that app doesn't show the query strings if not in debug mode 
 * 3.0.3 Fixed extension so that user can set custom name, and update name after initial activation
 * 3.0.2 Tab manager functionality can be used without URL launcher functionality 
   

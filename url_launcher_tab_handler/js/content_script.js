@@ -14,7 +14,24 @@
  * 
  */
 
-var options = {};
+var options = {
+	"state": {
+		"start": false
+		, "update": false
+		, "stop": false
+	}
+	, "debug": undefined
+	, "keep_tabs": undefined
+	, "loose_focus": undefined
+	, "fullscreen": undefined
+	, "url_launcher": undefined
+	, "tab_manager": undefined
+	, "timeout": undefined
+	, "name": undefined
+	, "sever": undefined
+	, "port": undefined
+	, "description": undefined
+};
 var connection = false;
 var idle_timeout = 0;
 var debug = true;
@@ -33,26 +50,46 @@ $(document).ready(function() {
 function readQueryStringOptions() {
 	options.href = window.location.href;
 
+	options.state.start = getQueryKey("start"); 
+	options.state.update = getQueryKey("update"); 
+	options.state.stop = getQueryKey("stop"); 
 
-	options.url_launcher = undefined;
-	if (getQueryString("url_launcher") == "true") options.url_launcher = true;  
-	else if (getQueryString("url_launcher") == "false") options.url_launcher = false;  
+	if (getQueryString("debug") == "true") options.debug = true;  
+	else if (getQueryKey("debug")) options.debug = true;  
+	else if (getQueryString("debug") == "false") options.debug = false;  
 
-	options.tab_manager = undefined;
-	if (getQueryString("tab_manager") == "true") options.tab_manager = true;  
-	else if (getQueryString("tab_manager") == "false") options.tab_manager = false;  
+	options.active = getQueryKey("active"); 
 
-	options.active = getQueryString("active") == "true" ? true : false; 
-	options.debug = getQueryString("debug")  == "true" ? true : false; 
-	options.go_fullscreen = getQueryString("fullscreen") == "true" ? true : false;
-	options.keep_tabs = getQueryString("keep_tabs") != "false" ? true : false;
+	if (options.state.start || options.state.update) {
 
-	options.name = getQueryString("name") || false;
-	options.server = getQueryString("server") || false;
-	options.port = getQueryString("port") || 9000;
+		if (getQueryString("tab_manager") == "true") options.tab_manager = true;  
+		else if (getQueryKey("tab_manager")) options.tab_manager = true;  
+		else if (getQueryString("tab_manager") == "false") options.tab_manager = false;  
 
-	options.timeout = undefined;
-	if (getQueryString("timeout")) options.timeout = getQueryString("timeout");
+		if (getQueryString("url_launcher") == "true") options.url_launcher = true;  
+		else if (getQueryKey("url_launcher")) options.url_launcher = true;  
+		else if (getQueryString("url_launcher") == "false") options.url_launcher = false;  
+
+		if (getQueryString("fullscreen") == "true") options.fullscreen = true;  
+		else if (getQueryKey("fullscreen")) options.fullscreen = true;  
+		else if (getQueryString("fullscreen") == "false") options.fullscreen = false;  
+
+		if (getQueryString("keep_tabs") == "true") options.keep_tabs = true;  
+		else if (getQueryKey("keep_tabs")) options.keep_tabs = true;  
+		else if (getQueryString("keep_tabs") == "false") options.keep_tabs = false;  
+
+		options.name = getQueryString("name");
+		options.server = getQueryString("server");
+		options.port = getQueryString("port");
+
+		// if (options.name.indexOf("%") > 0) options.name = unescape(options.name);
+		// if (options.description.indexOf("%") > 0) options.description = unescape(options.description);
+
+		if (getQueryString("timeout") && getQueryString("timeout") !== "") {
+			options.timeout == undefined;	
+			options.timeout = getQueryString("timeout");
+		}	
+	}
 
 	if (options.debug) console.log("[urlLauncher:readQueryStringOptions] sending options: ", options);
 	if (options.debug) addToStatus("sending request to connect to extension");
@@ -150,7 +187,42 @@ var getQueryString = function( name ) {
 	var regexS = "[\\?&]"+name+"=([^&#]*)";
 	var regex = new RegExp( regexS );
 	var results = regex.exec( window.location.href );
-	if( results == null ) return "";
+	if( results == null ) return false;
 	else return results[1];
 }
 
+var getQueryKey = function( name ) {
+	if (!window.location) return;
+
+	var value = getQueryString(name);
+
+	// if value is defined as false
+	if (value == "false") {
+		console.log("[getQueryKey] FALSE", name);
+		return false;
+	} else if (value == "true") {
+		console.log("[getQueryKey] TRUE", name);
+		return true;
+	}
+
+	// if only key exists then return true
+	if (value == "") {
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]("+name+")[&=]"; 
+		var regex = new RegExp( regexS );
+		var res_1 = regex.exec( window.location.href );
+		console.log(res_1);
+
+		regexS = "[\\?&]("+name+")$"; 
+		regex = new RegExp( regexS );
+		var res_2 = regex.exec( window.location.href );
+
+		console.log("[getQueryKey] Checking Results", name);
+		console.log("res_1", res_1);
+		console.log("res_2", res_2);
+
+		if( res_1 || res_2 ) return true;
+	}
+
+	return false;
+}
