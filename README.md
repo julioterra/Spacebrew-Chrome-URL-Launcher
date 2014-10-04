@@ -6,11 +6,11 @@ This chrome extension is the spacebrew Url Launcher app. This app accepts a stri
 @name 		spacrebrew_url_launcher  
 @author		Julio Terra  
 @created 	March 18, 2013    
-@modified 	October 3, 2014
-@version	3.0.4
+@modified   10/04/2014
+@version    3.0.4
   
 **System Requirements:** 
-* Tested on Chrome version 22 
+* Tested on Chrome version 37.0.2062.124 
 * Debugged on Mac OSX only (may work on other platforms but has not been tested)  
 
 **Latest Updates:**

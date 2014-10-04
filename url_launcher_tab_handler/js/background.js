@@ -8,8 +8,8 @@
  *
  * @filename    background.js
  * @author      Julio Terra
- * @modified    3/15/2013
- * @version     3.0.1
+ * @modified    10/04/2014
+ * @version     3.0.4
  * 
  */
 
@@ -17,8 +17,8 @@ var debug = debug || true;
 
 var content = {};
 	content.keys = ["sever", "port", "keep_tabs", "loose_focus", "fullscreen", 
-					"url_launcher", "tab_manager", "timeout",  
-					"name", "description"];
+					"url_launcher", "tab_manager", "timeout", "name", 
+					"sbName", "description"];
 	content.new = {};
 	content.active = {};
 	content.str = "";
@@ -41,6 +41,7 @@ var	sb = {};
 	sb.config = {
 		"active": {
 			"name": "chrome remote control"
+			, "sbName": "chrome remote control"
 			, "server": "sandbox.spacebrew.cc"
 			, "port": 9000		
 			, "description": "app that controls URL of tab via spacebrew"	
@@ -54,6 +55,7 @@ var	sb = {};
 	}
 		, default: {
 			"name": "chrome remote control"
+			, "sbName": "chrome remote control"
 			, "server": "sandbox.spacebrew.cc"
 			, "port": 9000		
 			, "description": "app that controls URL of tab via spacebrew"	
@@ -95,7 +97,11 @@ readRequest = function(_request, sender, sendResponse) {
 	content.new = _request;
 
  	if (content.new.href) {
- 		state.active = content.new.state; 
+ 		state.active.start = content.new.state.start; 
+ 		state.active.stop = content.new.state.stop; 
+ 		state.active.update = content.new.state.update; 
+
+
  		console.log("state activated to ", state.active);
  		// update the debug status
 		// if(content.new.tab_manager != undefined || content.new.url_launcher != undefined) {
@@ -105,7 +111,8 @@ readRequest = function(_request, sender, sendResponse) {
 
 		if (state.active.debug) console.log("debugging turned ON");
 		else console.log("debugging turned OFF");
-		console.log(content);
+		console.log("[readRequest] content - ", content);
+		console.log("[readRequest] state.active - ", state.active);
 
 		// }
 
@@ -121,8 +128,8 @@ readRequest = function(_request, sender, sendResponse) {
 
 			for (i in content.keys) {
 				console.log("[readRequest] pre-update sb.config", sb.config)
-				if (content.new[name] != undefined) {					
-					sb.config[content.keys[i]] == content.new[name]; 
+				if (content.new[content.keys[i]] != undefined) {					
+					sb.config[content.keys[i]] == content.new[content.keys[i]]; 
 				}
 				console.log("[readRequest] update sb.config", sb.config)
 			}
@@ -135,11 +142,11 @@ readRequest = function(_request, sender, sendResponse) {
 				 	if (state.active.debug) console.log("[readRequest] adding idle timer set-up request to response ", response);
 			}
 
-			if ((sb.config.active.name != content.new.name) 
+			if ((sb.config.active.sbName != content.new.sbName) 
 				|| (sb.config.active.server != content.new.server)
 				|| (sb.config.active.port != content.new.port)
 				|| (sb.config.active.description != content.new.description)) {
-			 	if (state.active.debug) console.log("[readRequest] names will be updated to  ", content.new.name);
+			 	if (state.active.debug) console.log("[readRequest] names will be updated to  ", content.new.sbName);
 				sb.connection.close();			
 				sbConnect();
 			}
@@ -183,12 +190,12 @@ updateValue = function(name) {
 sbConnect = function () {
 
 	// check if config needs to be updated with date from query string
-	if (content.new.name) sb.config.active.name = content.new.name;
+	if (content.new.sbName) sb.config.active.sbName = content.new.sbName;
 	if (content.new.server) sb.config.active.server = content.new.server;
 	if (content.new.port) sb.config.active.port = content.new.port;
 
 	// prepare name, server and description values to configure Spacebrew connection
-	var	name = sb.config.active.name = sb.config.active.name ? sb.config.active.name : sb.config.default.name;
+	var	name = sb.config.active.sbName = sb.config.active.sbName ? sb.config.active.sbName : sb.config.default.sbName;
 	var server = sb.config.active.server = sb.config.active.server ? sb.config.active.server : sb.config.default.server;
 	var port = sb.config.active.port = sb.config.active.port ? sb.config.active.port : sb.config.default.port;
 	var description = sb.config.active.description = sb.config.active.description ? sb.config.active.description : sb.config.default.description;
@@ -245,20 +252,23 @@ onString = function (source, string) {
 		string = "http:\/\/" + string;
 	}
 
+	// if in debug mode then add all the configs to the query string
 	if (state.active.debug) {
+		console.log("[onString]  sb.config", sb.config.active);
+
 		var query_start = "?";
 		if (string.indexOf("?") >= 0) query_start = "&";
+		string += query_start +	"debug=" + state.active.debug; 	
+
 		
-		console.log("[prepQueryString]  sb.config", sb.config.active);
-		
+		query_start = "&";
 		for (i in content.keys) {
 			if (sb.config.active[content.keys[i]] != undefined) {
 				string += query_start + content.keys[i] + "=" + sb.config.active[content.keys[i]];			
-				query_start = "&";
 			}
 		}
 
-		if (state.active.debug) console.log("[prepQueryString] query string set " + string);
+		if (state.active.debug) console.log("[onString] query string set " + string);
 	}
 
 	content.url_active = string;

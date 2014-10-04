@@ -9,8 +9,8 @@
  * 	
  * @filename    content_script.js
  * @author      Julio Terra
- * @modified    3/15/2013
- * @version     3.0.1
+ * @modified    10/04/2014
+ * @version     3.0.4
  * 
  */
 
@@ -28,6 +28,7 @@ var options = {
 	, "tab_manager": undefined
 	, "timeout": undefined
 	, "name": undefined
+	, "sbName": undefined
 	, "sever": undefined
 	, "port": undefined
 	, "description": undefined
@@ -79,6 +80,7 @@ function readQueryStringOptions() {
 		else if (getQueryString("keep_tabs") == "false") options.keep_tabs = false;  
 
 		options.name = getQueryString("name");
+		options.sbName = getQueryString("sbName");
 		options.server = getQueryString("server");
 		options.port = getQueryString("port");
 

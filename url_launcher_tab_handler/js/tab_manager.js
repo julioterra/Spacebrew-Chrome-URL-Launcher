@@ -9,8 +9,8 @@
  * @namespace 	CX
  * @filename    tab_manager.js
  * @author      Julio Terra
- * @modified    3/15/2013
- * @version     3.0.1
+ * @modified    10/04/2014
+ * @version     3.0.4
  * 
  */
 
