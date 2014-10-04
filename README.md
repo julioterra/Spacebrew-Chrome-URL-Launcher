@@ -13,7 +13,8 @@ This chrome extension is the spacebrew Url Launcher app. This app accepts a stri
 * Debugged on Mac OSX only (may work on other platforms but has not been tested)  
 
 **Latest Updates:** 
-* Tab manager functionality can be used without URL launcher functionality 
+* 3.0.3 Fixed extension so that user can set custom name, and update name after initial activation
+* 3.0.2 Tab manager functionality can be used without URL launcher functionality 
   
 How to Use 
 ----------------------------  

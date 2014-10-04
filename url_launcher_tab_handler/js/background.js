@@ -16,17 +16,36 @@
 var debug = debug || undefined;
 
 var content = {};
+	// content.name = undefined;
+	// content.server = undefined;
+	// content.port = undefined;
 	content.qs_attrs = ["debug", "keep_tabs", "loose_focus", "go_fullscreen", "url_launcher", "tab_manager", "timeout"],
 	content.qs_active = "";
-	content.qs_cur = {};
+	content.qs_cur = {
+
+	};
 	content.url_active = "";
 	content.idle_timeout = 0;
 	content.tab_handler;
 
 var	sb = {};
 	sb.connected = false;
-	sb.default_name = "sbUrlLauncher";
+	// sb.default_name = "sbUrlLauncher";
     sb.connection = {};     // spacebrew connection
+	sb.config = {
+		active: {
+			name: undefined
+			, server: undefined
+			, port: undefined
+			, description: undefined
+		}
+		, default: {
+			name: "chrome remote control"
+			, server: "sandbox.spacebrew.cc"
+			, port: 9000		
+			, description: "app that controls URL of tab via spacebrew"	
+		}
+	};
 
 
 $(document).ready(function() {
@@ -75,7 +94,12 @@ readRequest = function(_request, sender, sendResponse) {
 
 		// update status of URL Launcher
 		if(content.qs_cur.url_launcher != undefined) {
-			if (!sb.connected && content.qs_cur.url_launcher) sbConnect(content.qs_cur.name, content.qs_cur.server, content.qs_cur.port);
+			if (!sb.connected && content.qs_cur.url_launcher) {
+				sb.config.active.name = content.qs_cur.name;
+				sb.config.active.server = content.qs_cur.server;
+				sb.config.active.port = content.qs_cur.port;
+				sbConnect();
+			}
 			if (sb.connected && !content.qs_cur.url_launcher) {
 				sb.connection.close();
 				sb.connected = false;
@@ -99,6 +123,12 @@ readRequest = function(_request, sender, sendResponse) {
 		 	response.idle = content.idle_timeout = content.qs_cur.timeout || content.idle_timeout;
 		 	if (debug) console.log("[readRequest] adding idle timer set-up request to response ", response);
 		}
+
+		if (content.qs_cur.name != sb.config.active.name) {
+		 	if (debug) console.log("[readRequest] names will be updated to  ", content.qs_cur.name);
+			sb.connection.close();			
+			sbConnect();
+		}
 	} 
 
 	if (content.qs_cur.idle) {
@@ -118,11 +148,19 @@ readRequest = function(_request, sender, sendResponse) {
  * @param  {string} name Name of the app for the spacebrew server
  * @return {none}      
  */
-sbConnect = function (name, server, port) {
+sbConnect = function () {
+
+	// check if config needs to be updated with date from query string
+	if (content.qs_cur.name) sb.config.active.name = content.qs_cur.name;
+	if (content.qs_cur.server) sb.config.active.server = content.qs_cur.server;
+	if (content.qs_cur.port) sb.config.active.port = content.qs_cur.port;
+
 	// prepare name, server and description values to configure Spacebrew connection
-	name = name ? name : sb.default_name;
-	server = server ? server : "sandbox.spacebrew.cc";
-	var description = "A simple tool for transforming text messages in Spacebrew. It just responds to messages by sending other messages.";
+	var	name = sb.config.active.name = sb.config.active.name ? sb.config.active.name : sb.config.default.name;
+	var server = sb.config.active.server = sb.config.active.server ? sb.config.active.server : sb.config.default.server;
+	var port = sb.config.active.port = sb.config.active.port ? sb.config.active.port : sb.config.default.port;
+	var description = sb.config.active.description = sb.config.active.description ? sb.config.active.description : sb.config.default.description;
+
 
 	// create Spacebrew client object
 	sb.connection = new Spacebrew.Client(server, name, description, port);
