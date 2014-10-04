@@ -3,10 +3,11 @@ Spacebrew URL Launcher
 
 This chrome extension is the spacebrew Url Launcher app. This app accepts a string message from spacebrew, checks if that message is a URL, and if so, loads the URL in Chrome. This app can also function as a tab manager that always keeps a chrome tab in focus, and deletes all inactive tabs. Please read the instructions below to learn how to use it.
 
-**App:** 	spacrebrew_url_launcher  
-**Component:** 	url_launcher chrome extension  
-**Team:** 	Julio Terra  
-**Date:** 	March 18, 2013    
+@name 		spacrebrew_url_launcher  
+@author		Julio Terra  
+@created 	March 18, 2013    
+@modified 	October 3, 2014
+@version	3.0.3
   
 **System Requirements:** 
 * Tested on Chrome version 22 
